@@ -1,4 +1,4 @@
-package com.janardhan.oportun;
+package com.janardhan.assignment;
 
 import java.util.Map;
 
@@ -22,7 +22,7 @@ public class Customer {
     }
 
 
-    public String deposit(Map<Currency,Integer> notes) {
+    public String deposit(Map<Currency,Long> notes) {
         long negativeAmtCnt = notes.keySet().stream().filter(note->note.getDenomination() < 0).count();
         if(negativeAmtCnt>0) {
             return "Incorrect deposit amount";
@@ -33,16 +33,33 @@ public class Customer {
             return "Deposit amount cannot be zero";
         }
         else {
+            StringBuffer result = new StringBuffer("Deposit: ");
             final Long[] totalDepositedAmt = {0L};
-            notes.entrySet().stream().forEach(entry-> totalDepositedAmt[0] += entry.getKey().getDenomination() * entry.getValue());
+
+            notes.entrySet().stream().forEach(entry-> {
+                totalDepositedAmt[0] += entry.getKey().getDenomination() * entry.getValue();
+                result.append(entry.getKey().getDenomination()+"s"+":"+" "+entry.getValue()+", ");
+            }
+            );
+            result.append("\n---------------------------------");
             balanceAmt+= totalDepositedAmt[0];
-            atm.incrementBalance(balanceAmt);
-            return "";
+            notes.entrySet().stream().forEach(entry-> atm.incrementCurrency(entry.getKey(),entry.getValue()));
+
+            return result.toString();
         }
 
     }
 
     public Long balance() {
         return balanceAmt;
+    }
+
+    public String withdraw(long amount) {
+        if(amount<=0 || amount > balanceAmt){
+            return "Incorrect or insufficient funds";
+        }
+        atm.dispense(amount);
+        balanceAmt-=amount;
+        return "";
     }
 }
